@@ -1,9 +1,9 @@
-const User = require("../models/User"); 
+const User = require("../models/User");
 const mongoose = require("mongoose");
 
 exports.addExercise = async (req, res) => {
-  const userId = req.params._id; 
-  const { description, duration, date } = req.body; 
+  const userId = req.params._id;
+  const { description, duration, date } = req.body;
 
   if (!description || description.trim() === "") {
     return res.status(400).json({ error: "Description is required." });
@@ -23,7 +23,7 @@ exports.addExercise = async (req, res) => {
     if (isNaN(parsedDate.getTime())) {
       return res
         .status(400)
-        .json({ error: "Invalid date format. Use yyyy-mm-dd." });
+        .json({ error: "Invalid date format. Use YYYY-mm-dd." });
     }
     exerciseDate = parsedDate;
   } else {
@@ -50,7 +50,7 @@ exports.addExercise = async (req, res) => {
       username: savedUser.username,
       description: newExercise.description,
       duration: newExercise.duration,
-      date: newExercise.date.toDateString(), 
+      date: newExercise.date.toDateString(),
     });
   } catch (err) {
     if (err.name === "ValidationError") {
@@ -62,14 +62,13 @@ exports.addExercise = async (req, res) => {
 };
 
 exports.getExerciseLog = async (req, res) => {
-  const userId = req.params._id; 
-  const { from, to, limit } = req.query; 
+  const userId = req.params._id;
+  const { from, to, limit } = req.query;
 
   try {
     if (!mongoose.Types.ObjectId.isValid(userId)) {
       return res.status(400).json({ error: "Invalid User ID format." });
     }
-
     const pipeline = [
       {
         $match: {
@@ -86,19 +85,19 @@ exports.getExerciseLog = async (req, res) => {
       if (isNaN(fromDate.getTime())) {
         return res
           .status(400)
-          .json({ error: 'Invalid "from" date format. Use yyyy-mm-dd.' });
+          .json({ error: 'Invalid "from" date format. Use YYYY-mm-dd.' });
       }
-      dateFilter.$gte = fromDate; 
+      dateFilter.$gte = fromDate;
     }
     if (to) {
       const toDate = new Date(to);
       if (isNaN(toDate.getTime())) {
         return res
           .status(400)
-          .json({ error: 'Invalid "to" date format. Use yyyy-mm-dd.' });
+          .json({ error: 'Invalid "to" date format. Use YYYY-mm-dd.' });
       }
       toDate.setHours(23, 59, 59, 999);
-      dateFilter.$lte = toDate; 
+      dateFilter.$lte = toDate;
     }
 
     if (Object.keys(dateFilter).length > 0) {
@@ -124,9 +123,9 @@ exports.getExerciseLog = async (req, res) => {
     pipeline.push({
       $group: {
         _id: "$_id",
-        username: { $first: "$username" }, 
-        log: { $push: "$log" }, 
-        count: { $sum: 1 }, 
+        username: { $first: "$username" },
+        log: { $push: "$log" },
+        count: { $sum: 1 },
       },
     });
 
@@ -142,12 +141,7 @@ exports.getExerciseLog = async (req, res) => {
             in: {
               description: "$$exercise.description",
               duration: "$$exercise.duration",
-              date: {
-                $dateToString: {
-                  format: "%a %b %d %Y",
-                  date: "$$exercise.date",
-                },
-              },
+              date: "$$exercise.date",
             },
           },
         },
@@ -169,7 +163,18 @@ exports.getExerciseLog = async (req, res) => {
       });
     }
 
-    res.json(result[0]); 
+    const formattedLog = result[0].log.map((exercise) => ({
+      description: exercise.description,
+      duration: exercise.duration,
+      date: exercise.date.toDateString(),
+    }));
+
+    res.json({
+      _id: result[0]._id,
+      username: result[0].username,
+      count: result[0].count,
+      log: formattedLog,
+    });
   } catch (err) {
     console.error("Error getting exercise log:", err);
     res

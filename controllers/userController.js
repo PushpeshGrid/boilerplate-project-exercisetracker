@@ -1,4 +1,4 @@
-const User = require("../models/User"); 
+const User = require("../models/User");
 
 exports.createUser = async (req, res) => {
   const { username } = req.body;
@@ -12,9 +12,11 @@ exports.createUser = async (req, res) => {
     const existingUser = await User.findOne({
       username: { $regex: new RegExp(`^${trimmedUsername}$`, "i") },
     });
+
     if (existingUser) {
       return res.status(409).json({ error: "Username already exists." });
     }
+
     const newUser = new User({ username: trimmedUsername });
     const savedUser = await newUser.save();
 
@@ -28,7 +30,6 @@ exports.createUser = async (req, res) => {
   }
 };
 
-
 exports.getAllUsers = async (req, res) => {
   try {
     const users = await User.find({}, "username _id");
@@ -38,6 +39,3 @@ exports.getAllUsers = async (req, res) => {
     res.status(500).json({ error: "Server error. Could not retrieve users." });
   }
 };
-
-
-

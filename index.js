@@ -4,12 +4,11 @@ const cors = require('cors');
 require('dotenv').config();
 const mongoose = require('mongoose');
 
-const apiRoutes = require('./routes/route'); 
+const apiRoutes = require('./routes/api'); 
 
-mongoose.connect(process.env.MONGO_URI, {
-  useNewUrlParser: true,
-  useUnifiedTopology: true
-})
+// console.log(process.env.MONGO_URI);
+
+mongoose.connect(process.env.MONGO_URI)
 .then(() => console.log("MongoDB database connection established successfully"))
 .catch(err => console.error("MongoDB connection error:", err));
 
@@ -19,12 +18,10 @@ app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
 app.get('/', (req, res) => {
-  res.sendFile(__dirname + '/public/index.html');
+  res.sendFile(__dirname + '/views/index.html');
 });
 
-
-app.use('/route', apiRoutes); 
-
+app.use('/api', apiRoutes);
 
 app.use((err, req, res, next) => {
   console.error(err.stack);

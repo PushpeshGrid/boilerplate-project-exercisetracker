@@ -4,25 +4,24 @@ const exerciseSchema = new mongoose.Schema({
   description: {
     type: String,
     required: true,
-    trim: true 
+    trim: true
   },
   duration: {
     type: Number,
     required: true,
-    min: 1 
+    min: 1
   },
   date: {
     type: Date,
-    default: Date.now 
+    default: Date.now
   }
-}, { _id: false }); 
-
+});
 
 const userSchema = new mongoose.Schema({
   username: {
     type: String,
     required: true,
-    unique: true, 
+    unique: true,
     trim: true
   },
   log: [exerciseSchema]
